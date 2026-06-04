@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TunerRouteImport } from './routes/tuner'
 import { Route as MetronomeRouteImport } from './routes/metronome'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChordsRouteImport } from './routes/chords'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const TunerRoute = TunerRouteImport.update({
 const MetronomeRoute = MetronomeRouteImport.update({
   id: '/metronome',
   path: '/metronome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChordsRoute = ChordsRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chords': typeof ChordsRoute
+  '/dashboard': typeof DashboardRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chords': typeof ChordsRoute
+  '/dashboard': typeof DashboardRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chords': typeof ChordsRoute
+  '/dashboard': typeof DashboardRoute
   '/metronome': typeof MetronomeRoute
   '/tuner': typeof TunerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chords' | '/metronome' | '/tuner'
+  fullPaths: '/' | '/chords' | '/dashboard' | '/metronome' | '/tuner'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chords' | '/metronome' | '/tuner'
-  id: '__root__' | '/' | '/chords' | '/metronome' | '/tuner'
+  to: '/' | '/chords' | '/dashboard' | '/metronome' | '/tuner'
+  id: '__root__' | '/' | '/chords' | '/dashboard' | '/metronome' | '/tuner'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChordsRoute: typeof ChordsRoute
+  DashboardRoute: typeof DashboardRoute
   MetronomeRoute: typeof MetronomeRoute
   TunerRoute: typeof TunerRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/metronome'
       fullPath: '/metronome'
       preLoaderRoute: typeof MetronomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chords': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChordsRoute: ChordsRoute,
+  DashboardRoute: DashboardRoute,
   MetronomeRoute: MetronomeRoute,
   TunerRoute: TunerRoute,
 }
