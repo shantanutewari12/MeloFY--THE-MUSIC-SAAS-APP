@@ -6,7 +6,7 @@ import { midiToFreq, freqToMidi, midiToNoteName } from "@/lib/chordEngine";
 export const Route = createFileRoute("/tuner")({
   head: () => ({
     meta: [
-      { title: "Guitar Tuner — MusicKit" },
+      { title: "Guitar Tuner — MeloFY" },
       { name: "description", content: "Chromatic tuner with YIN pitch detection." },
     ],
   }),
@@ -52,9 +52,14 @@ function TunerPage() {
   async function start() {
     setPermError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
       streamRef.current = stream;
-      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const ctx = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
       ctxRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
@@ -62,7 +67,9 @@ function TunerPage() {
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      const worker = new Worker(new URL("../lib/yin.worker.ts", import.meta.url), { type: "module" });
+      const worker = new Worker(new URL("../lib/yin.worker.ts", import.meta.url), {
+        type: "module",
+      });
       workerRef.current = worker;
       let pending = false;
       worker.onmessage = (e: MessageEvent<{ freq: number }>) => {
@@ -90,7 +97,10 @@ function TunerPage() {
         rms = Math.sqrt(rms / buf.length);
         if (rms > 0.01 && !pending && workerRef.current) {
           pending = true;
-          workerRef.current.postMessage({ buffer: buf.slice(0), sampleRate: ctxRef.current!.sampleRate });
+          workerRef.current.postMessage({
+            buffer: buf.slice(0),
+            sampleRate: ctxRef.current!.sampleRate,
+          });
         }
         rafRef.current = requestAnimationFrame(tick);
       };
@@ -118,7 +128,12 @@ function TunerPage() {
 
   useEffect(() => () => stop(), []);
 
-  const tuneColor = Math.abs(cents) <= 5 ? "oklch(0.75 0.2 140)" : Math.abs(cents) <= 15 ? "oklch(0.82 0.17 80)" : "oklch(0.65 0.25 30)";
+  const tuneColor =
+    Math.abs(cents) <= 5
+      ? "oklch(0.75 0.2 140)"
+      : Math.abs(cents) <= 15
+        ? "oklch(0.82 0.17 80)"
+        : "oklch(0.65 0.25 30)";
   const needleAngle = (cents / 50) * 45; // -45° to +45°
 
   return (
@@ -136,38 +151,66 @@ function TunerPage() {
           <div className="relative aspect-[2/1] max-w-2xl mx-auto mb-8">
             <svg viewBox="0 0 400 200" className="w-full h-full">
               {/* Arc */}
-              <path d="M 40 180 A 160 160 0 0 1 360 180" fill="none" stroke="oklch(0.3 0.06 290)" strokeWidth="14" strokeLinecap="round"/>
-              <path d="M 40 180 A 160 160 0 0 1 360 180" fill="none" stroke="url(#grad)" strokeWidth="2"/>
+              <path
+                d="M 40 180 A 160 160 0 0 1 360 180"
+                fill="none"
+                stroke="oklch(0.3 0.06 290)"
+                strokeWidth="14"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 40 180 A 160 160 0 0 1 360 180"
+                fill="none"
+                stroke="url(#grad)"
+                strokeWidth="2"
+              />
               <defs>
                 <linearGradient id="grad" x1="0" x2="1">
-                  <stop offset="0" stopColor="oklch(0.65 0.25 30)"/>
-                  <stop offset="0.5" stopColor="oklch(0.75 0.2 140)"/>
-                  <stop offset="1" stopColor="oklch(0.65 0.25 30)"/>
+                  <stop offset="0" stopColor="oklch(0.65 0.25 30)" />
+                  <stop offset="0.5" stopColor="oklch(0.75 0.2 140)" />
+                  <stop offset="1" stopColor="oklch(0.65 0.25 30)" />
                 </linearGradient>
               </defs>
               {/* Tick marks */}
               {[-45, -22.5, 0, 22.5, 45].map((a) => {
-                const rad = (a - 90) * Math.PI / 180;
+                const rad = ((a - 90) * Math.PI) / 180;
                 const x1 = 200 + Math.cos(rad) * 145;
                 const y1 = 180 + Math.sin(rad) * 145;
                 const x2 = 200 + Math.cos(rad) * 165;
                 const y2 = 180 + Math.sin(rad) * 165;
-                return <line key={a} x1={x1} y1={y1} x2={x2} y2={y2} stroke="oklch(0.7 0.04 90)" strokeWidth="2"/>;
+                return (
+                  <line
+                    key={a}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke="oklch(0.7 0.04 90)"
+                    strokeWidth="2"
+                  />
+                );
               })}
-              <text x="40" y="195" fill="oklch(0.72 0.04 90)" fontSize="12">-50¢</text>
-              <text x="195" y="195" fill="oklch(0.72 0.04 90)" fontSize="12" textAnchor="middle">0</text>
-              <text x="360" y="195" fill="oklch(0.72 0.04 90)" fontSize="12" textAnchor="end">+50¢</text>
+              <text x="40" y="195" fill="oklch(0.72 0.04 90)" fontSize="12">
+                -50¢
+              </text>
+              <text x="195" y="195" fill="oklch(0.72 0.04 90)" fontSize="12" textAnchor="middle">
+                0
+              </text>
+              <text x="360" y="195" fill="oklch(0.72 0.04 90)" fontSize="12" textAnchor="end">
+                +50¢
+              </text>
               {/* Needle */}
               <line
-                x1="200" y1="180"
-                x2={200 + Math.cos((needleAngle - 90) * Math.PI / 180) * 140}
-                y2={180 + Math.sin((needleAngle - 90) * Math.PI / 180) * 140}
+                x1="200"
+                y1="180"
+                x2={200 + Math.cos(((needleAngle - 90) * Math.PI) / 180) * 140}
+                y2={180 + Math.sin(((needleAngle - 90) * Math.PI) / 180) * 140}
                 stroke={tuneColor}
                 strokeWidth="4"
                 strokeLinecap="round"
                 style={{ transition: "all 0.1s ease-out" }}
               />
-              <circle cx="200" cy="180" r="10" fill={tuneColor}/>
+              <circle cx="200" cy="180" r="10" fill={tuneColor} />
             </svg>
           </div>
 
@@ -175,15 +218,23 @@ function TunerPage() {
           <div className="grid grid-cols-3 gap-4 mb-8 text-center">
             <div>
               <div className="text-muted-foreground text-xs tracking-widest">NOTE</div>
-              <div className="font-display text-5xl" style={{ color: tuneColor }}>{note}</div>
+              <div className="font-display text-5xl" style={{ color: tuneColor }}>
+                {note}
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground text-xs tracking-widest">FREQUENCY</div>
-              <div className="font-display text-5xl">{freq ? freq.toFixed(1) : "—"}<span className="text-xl text-muted-foreground"> Hz</span></div>
+              <div className="font-display text-5xl">
+                {freq ? freq.toFixed(1) : "—"}
+                <span className="text-xl text-muted-foreground"> Hz</span>
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground text-xs tracking-widest">CENTS</div>
-              <div className="font-display text-5xl" style={{ color: tuneColor }}>{cents > 0 ? "+" : ""}{cents}</div>
+              <div className="font-display text-5xl" style={{ color: tuneColor }}>
+                {cents > 0 ? "+" : ""}
+                {cents}
+              </div>
             </div>
           </div>
 
@@ -200,10 +251,18 @@ function TunerPage() {
 
           {/* Tuning preset */}
           <div>
-            <div className="text-muted-foreground text-xs tracking-widest mb-2 text-center">TUNING PRESET</div>
+            <div className="text-muted-foreground text-xs tracking-widest mb-2 text-center">
+              TUNING PRESET
+            </div>
             <div className="flex flex-wrap gap-2 justify-center mb-4">
               {(Object.keys(TUNINGS) as TuningName[]).map((t) => (
-                <button key={t} onClick={() => setTuning(t)} className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tuning === t ? "bg-accent text-accent-foreground" : "bg-muted hover:bg-secondary"}`}>{t}</button>
+                <button
+                  key={t}
+                  onClick={() => setTuning(t)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tuning === t ? "bg-accent text-accent-foreground" : "bg-muted hover:bg-secondary"}`}
+                >
+                  {t}
+                </button>
               ))}
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -212,7 +271,10 @@ function TunerPage() {
                 const f = midiToFreq(midi);
                 const isMatch = note === n && Math.abs(cents) <= 5;
                 return (
-                  <div key={i} className={`px-4 py-3 rounded-xl border text-center transition ${isMatch ? "border-primary bg-primary/20 shadow-[0_0_20px_oklch(0.82_0.17_80/0.4)]" : "border-border bg-card/40"}`}>
+                  <div
+                    key={i}
+                    className={`px-4 py-3 rounded-xl border text-center transition ${isMatch ? "border-primary bg-primary/20 shadow-[0_0_20px_oklch(0.82_0.17_80/0.4)]" : "border-border bg-card/40"}`}
+                  >
                     <div className="font-display text-xl">{n}</div>
                     <div className="text-xs text-muted-foreground">{f.toFixed(1)} Hz</div>
                   </div>
@@ -220,7 +282,9 @@ function TunerPage() {
               })}
             </div>
             {targetFreq > 0 && (
-              <p className="text-center text-xs text-muted-foreground mt-4">Target: {targetFreq.toFixed(1)} Hz</p>
+              <p className="text-center text-xs text-muted-foreground mt-4">
+                Target: {targetFreq.toFixed(1)} Hz
+              </p>
             )}
           </div>
         </div>

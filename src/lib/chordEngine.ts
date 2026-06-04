@@ -4,46 +4,65 @@ const NOTES_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#",
 const NOTES_FLAT = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
 const ENHARMONIC: Record<string, string> = {
-  Db: "C#", Eb: "D#", Gb: "F#", Ab: "G#", Bb: "A#",
-  "C#": "C#", "D#": "D#", "F#": "F#", "G#": "G#", "A#": "A#",
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#",
+  "C#": "C#",
+  "D#": "D#",
+  "F#": "F#",
+  "G#": "G#",
+  "A#": "A#",
 };
 
 // Chord quality -> intervals from root (semitones)
 export const QUALITIES: Record<string, number[]> = {
-  "":      [0, 4, 7],          // major
-  "maj":   [0, 4, 7],
-  "M":     [0, 4, 7],
-  "m":     [0, 3, 7],          // minor
-  "min":   [0, 3, 7],
-  "maj7":  [0, 4, 7, 11],
-  "M7":    [0, 4, 7, 11],
-  "m7":    [0, 3, 7, 10],
-  "min7":  [0, 3, 7, 10],
-  "7":     [0, 4, 7, 10],      // dom7
-  "dom7":  [0, 4, 7, 10],
-  "sus2":  [0, 2, 7],
-  "sus4":  [0, 5, 7],
-  "dim":   [0, 3, 6],
-  "dim7":  [0, 3, 6, 9],
-  "aug":   [0, 4, 8],
-  "m6":    [0, 3, 7, 9],
-  "6":     [0, 4, 7, 9],
-  "add9":  [0, 4, 7, 14],
-  "9":     [0, 4, 7, 10, 14],
-  "m9":    [0, 3, 7, 10, 14],
+  "": [0, 4, 7], // major
+  maj: [0, 4, 7],
+  M: [0, 4, 7],
+  m: [0, 3, 7], // minor
+  min: [0, 3, 7],
+  maj7: [0, 4, 7, 11],
+  M7: [0, 4, 7, 11],
+  m7: [0, 3, 7, 10],
+  min7: [0, 3, 7, 10],
+  "7": [0, 4, 7, 10], // dom7
+  dom7: [0, 4, 7, 10],
+  sus2: [0, 2, 7],
+  sus4: [0, 5, 7],
+  dim: [0, 3, 6],
+  dim7: [0, 3, 6, 9],
+  aug: [0, 4, 8],
+  m6: [0, 3, 7, 9],
+  "6": [0, 4, 7, 9],
+  add9: [0, 4, 7, 14],
+  "9": [0, 4, 7, 10, 14],
+  m9: [0, 3, 7, 10, 14],
 };
 
 export const QUALITY_LABEL: Record<string, string> = {
-  "": "Major", maj: "Major", M: "Major",
-  m: "Minor", min: "Minor",
-  maj7: "Major 7th", M7: "Major 7th",
-  m7: "Minor 7th", min7: "Minor 7th",
-  "7": "Dominant 7th", dom7: "Dominant 7th",
-  sus2: "Suspended 2nd", sus4: "Suspended 4th",
-  dim: "Diminished", dim7: "Diminished 7th",
+  "": "Major",
+  maj: "Major",
+  M: "Major",
+  m: "Minor",
+  min: "Minor",
+  maj7: "Major 7th",
+  M7: "Major 7th",
+  m7: "Minor 7th",
+  min7: "Minor 7th",
+  "7": "Dominant 7th",
+  dom7: "Dominant 7th",
+  sus2: "Suspended 2nd",
+  sus4: "Suspended 4th",
+  dim: "Diminished",
+  dim7: "Diminished 7th",
   aug: "Augmented",
-  m6: "Minor 6th", "6": "Major 6th",
-  add9: "Add 9", "9": "Dominant 9th", m9: "Minor 9th",
+  m6: "Minor 6th",
+  "6": "Major 6th",
+  add9: "Add 9",
+  "9": "Dominant 9th",
+  m9: "Minor 9th",
 };
 
 function normalizeNote(raw: string): { note: string; index: number } | null {
@@ -60,7 +79,9 @@ function normalizeNote(raw: string): { note: string; index: number } | null {
   return { note: canonical, index: idx };
 }
 
-export function parseChord(input: string): { root: string; rootIndex: number; quality: string } | null {
+export function parseChord(
+  input: string,
+): { root: string; rootIndex: number; quality: string } | null {
   const cleaned = input.trim();
   if (!cleaned) return null;
   // Extract root (1-2 chars)
@@ -85,7 +106,10 @@ export function parseChord(input: string): { root: string; rootIndex: number; qu
   if (!matched && qualityRaw !== "") {
     // try partial
     for (const q of qualities) {
-      if (q && lower.startsWith(q.toLowerCase())) { matched = q; break; }
+      if (q && lower.startsWith(q.toLowerCase())) {
+        matched = q;
+        break;
+      }
     }
   }
   return { root: parsedRoot.note, rootIndex: parsedRoot.index, quality: matched };
@@ -109,7 +133,10 @@ function generateVoicing(chordPCs: number[], startFret: number): number[] {
     for (let f = startFret; f < startFret + 5; f++) {
       const pc = (GUITAR_OPEN[s] + f) % 12;
       if (needed.has(pc)) {
-        if (!covered.has(pc) || best === -1) { best = f; if (!covered.has(pc)) break; }
+        if (!covered.has(pc) || best === -1) {
+          best = f;
+          if (!covered.has(pc)) break;
+        }
       }
     }
     if (best === -1) voicing.push(-1);

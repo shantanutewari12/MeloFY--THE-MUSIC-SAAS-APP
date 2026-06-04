@@ -5,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 export const Route = createFileRoute("/metronome")({
   head: () => ({
     meta: [
-      { title: "Metronome — MusicKit" },
+      { title: "Metronome — MeloFY" },
       { name: "description", content: "Sample-accurate metronome powered by Web Audio." },
     ],
   }),
@@ -81,7 +81,10 @@ function MetronomePage() {
 
   function start() {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      audioCtxRef.current = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
     }
     audioCtxRef.current.resume();
     beatRef.current = 0;
@@ -96,9 +99,17 @@ function MetronomePage() {
     lookaheadTimerRef.current = null;
     setCurrentBeat(0);
   }
-  useEffect(() => () => { if (lookaheadTimerRef.current) window.clearInterval(lookaheadTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (lookaheadTimerRef.current) window.clearInterval(lookaheadTimerRef.current);
+    },
+    [],
+  );
   useEffect(() => {
-    if (running) { stop(); start(); }
+    if (running) {
+      stop();
+      start();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bpm, sig, sub]);
 
@@ -117,18 +128,20 @@ function MetronomePage() {
     <div className="min-h-screen">
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-12">
-        <div className="mb-10">
+        <div className="mb-10 text-center sm:text-left">
           <p className="text-accent text-sm font-semibold tracking-widest mb-2">02 — METRONOME</p>
           <h1 className="text-5xl md:text-6xl font-display">Keep Perfect Time</h1>
         </div>
 
-        <div className="rounded-3xl bg-card/60 backdrop-blur border border-border p-8 md:p-12">
+        <div className="rounded-3xl bg-card/60 backdrop-blur border border-border p-6 md:p-12">
           {/* BPM */}
           <div className="text-center mb-8">
             <div className="font-display text-8xl md:text-9xl bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent">
               {bpm}
             </div>
-            <div className="text-muted-foreground text-sm tracking-widest -mt-2">BEATS PER MINUTE</div>
+            <div className="text-muted-foreground text-xs sm:text-sm tracking-widest -mt-2">
+              BEATS PER MINUTE
+            </div>
           </div>
 
           {/* Beat dots */}
@@ -149,48 +162,81 @@ function MetronomePage() {
 
           {/* BPM controls */}
           <div className="flex items-center justify-center gap-3 mb-6">
-            <button onClick={() => setBpm((b) => Math.max(20, b - 1))} className="w-11 h-11 rounded-full bg-muted hover:bg-secondary transition text-xl">−</button>
+            <button
+              onClick={() => setBpm((b) => Math.max(20, b - 1))}
+              className="w-11 h-11 rounded-full bg-muted hover:bg-secondary transition text-xl"
+            >
+              −
+            </button>
             <input
-              type="number" min={20} max={300} value={bpm}
+              type="number"
+              min={20}
+              max={300}
+              value={bpm}
               onChange={(e) => setBpm(Math.min(300, Math.max(20, Number(e.target.value) || 120)))}
               className="w-24 text-center px-3 py-2 rounded-xl bg-input border border-border text-lg"
             />
-            <button onClick={() => setBpm((b) => Math.min(300, b + 1))} className="w-11 h-11 rounded-full bg-muted hover:bg-secondary transition text-xl">+</button>
+            <button
+              onClick={() => setBpm((b) => Math.min(300, b + 1))}
+              className="w-11 h-11 rounded-full bg-muted hover:bg-secondary transition text-xl"
+            >
+              +
+            </button>
           </div>
           <input
-            type="range" min={20} max={300} value={bpm}
+            type="range"
+            min={20}
+            max={300}
+            value={bpm}
             onChange={(e) => setBpm(Number(e.target.value))}
             className="w-full accent-primary mb-8"
           />
 
           {/* Buttons */}
-          <div className="flex flex-wrap gap-3 justify-center mb-8">
+          <div className="flex flex-wrap gap-3 justify-center mb-8 w-full">
             <button
               onClick={running ? stop : start}
-              className="px-8 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition"
+              className="w-full sm:w-auto px-8 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition"
             >
               {running ? "■ Stop" : "▶ Start"}
             </button>
-            <button onClick={tapTempo} className="px-6 py-3 rounded-full border border-border hover:border-primary transition font-semibold">
+            <button
+              onClick={tapTempo}
+              className="w-full sm:w-auto px-6 py-3 rounded-full border border-border hover:border-primary transition font-semibold"
+            >
               Tap Tempo
             </button>
           </div>
 
           {/* Signature & subdivisions */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="text-muted-foreground text-xs tracking-widest mb-2">TIME SIGNATURE</div>
-              <div className="flex flex-wrap gap-2">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left">
+              <div className="text-muted-foreground text-xs tracking-widest mb-3">
+                TIME SIGNATURE
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {SIGNATURES.map((s) => (
-                  <button key={s.label} onClick={() => setSig(s)} className={`px-4 py-2 rounded-full text-sm font-semibold transition ${sig.label === s.label ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-secondary"}`}>{s.label}</button>
+                  <button
+                    key={s.label}
+                    onClick={() => setSig(s)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition ${sig.label === s.label ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-secondary"}`}
+                  >
+                    {s.label}
+                  </button>
                 ))}
               </div>
             </div>
-            <div>
-              <div className="text-muted-foreground text-xs tracking-widest mb-2">SUBDIVISIONS</div>
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left">
+              <div className="text-muted-foreground text-xs tracking-widest mb-3">SUBDIVISIONS</div>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {SUBDIVISIONS.map((s) => (
-                  <button key={s.label} onClick={() => setSub(s)} className={`px-4 py-2 rounded-full text-sm font-semibold transition ${sub.label === s.label ? "bg-accent text-accent-foreground" : "bg-muted hover:bg-secondary"}`}>{s.label}</button>
+                  <button
+                    key={s.label}
+                    onClick={() => setSub(s)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition ${sub.label === s.label ? "bg-accent text-accent-foreground" : "bg-muted hover:bg-secondary"}`}
+                  >
+                    {s.label}
+                  </button>
                 ))}
               </div>
             </div>

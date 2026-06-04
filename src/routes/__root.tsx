@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { playClickSound } from "../lib/audioSynth";
+import { MobileBottomNav } from "../components/MobileBottomNav";
 
 function NotFoundComponent() {
   return (
@@ -78,16 +80,52 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MeloFY" },
+      {
+        name: "description",
+        content:
+          "Chord diagrams, metronome, tuner, and practice tracker. Built for musicians who play.",
+      },
+      { name: "author", content: "MeloFY" },
+      { property: "og:title", content: "MeloFY — Tools for Musicians" },
+      {
+        property: "og:description",
+        content: "Chords, metronome, tuner & practice tracking in one beautiful app.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "theme-color", content: "#e0a300" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "MeloFY" },
     ],
     links: [
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "manifest",
+        href: "/manifest.json",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/icon-192.png",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -117,10 +155,47 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    // 1. Register PWA Service Worker
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => {
+            console.log("SW registered successfully:", reg.scope);
+          })
+          .catch((err) => {
+            console.error("SW registration failed:", err);
+          });
+      });
+    }
+
+    // 2. Global Button & Link click sound handler (tactile audio feedback)
+    const handleGlobalInteraction = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const clickable = target.closest(
+        "button, a, [role='button'], input[type='submit'], input[type='button']",
+      );
+      if (clickable) {
+        playClickSound();
+      }
+    };
+
+    window.addEventListener("click", handleGlobalInteraction);
+    return () => {
+      window.removeEventListener("click", handleGlobalInteraction);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="pb-20 md:pb-0 min-h-screen flex flex-col">
+        <div className="flex-1">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </div>
+        <MobileBottomNav />
+      </div>
       <Toaster />
     </QueryClientProvider>
   );

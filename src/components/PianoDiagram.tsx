@@ -20,7 +20,8 @@ export function PianoDiagram({ highlightMidi, name }: Props) {
   const blackH = 80;
   const W = totalWhites * whiteW + 20;
   const H = whiteH + 40;
-  const padX = 10, padTop = 20;
+  const padX = 10,
+    padTop = 20;
 
   const highlighted = new Set(highlightMidi);
 
@@ -33,7 +34,8 @@ export function PianoDiagram({ highlightMidi, name }: Props) {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = W * 2; canvas.height = H * 2;
+      canvas.width = W * 2;
+      canvas.height = H * 2;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#1a1230";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -54,8 +56,13 @@ export function PianoDiagram({ highlightMidi, name }: Props) {
   return (
     <div className="flex flex-col items-center gap-3">
       <h3 className="font-display text-2xl">Piano</h3>
-      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[400px]" xmlns="http://www.w3.org/2000/svg">
-        <rect width={W} height={H} fill="oklch(0.18 0.05 290)" rx="12"/>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full max-w-[400px]"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width={W} height={H} fill="oklch(0.18 0.05 290)" rx="12" />
         {/* White keys */}
         {Array.from({ length: totalWhites }).map((_, i) => {
           const octave = Math.floor(i / 7);
@@ -100,7 +107,12 @@ export function PianoDiagram({ highlightMidi, name }: Props) {
           );
         })}
       </svg>
-      <button onClick={downloadPNG} className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary transition">Download PNG</button>
+      <button
+        onClick={downloadPNG}
+        className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary transition"
+      >
+        Download PNG
+      </button>
     </div>
   );
 }

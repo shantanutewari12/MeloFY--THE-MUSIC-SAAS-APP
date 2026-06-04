@@ -45,7 +45,9 @@ function yin(buffer: Float32Array, sampleRate: number, threshold = 0.1): number 
   const x2 = tau < halfSize - 1 ? tau + 1 : tau;
   let betterTau = tau;
   if (x0 !== tau && x2 !== tau) {
-    const s0 = yinBuffer[x0], s1 = yinBuffer[tau], s2 = yinBuffer[x2];
+    const s0 = yinBuffer[x0],
+      s1 = yinBuffer[tau],
+      s2 = yinBuffer[x2];
     betterTau = tau + (s2 - s0) / (2 * (2 * s1 - s2 - s0));
   }
   return sampleRate / betterTau;
