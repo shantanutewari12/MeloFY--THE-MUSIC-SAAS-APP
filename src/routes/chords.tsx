@@ -27,7 +27,7 @@ interface SavedChord {
 }
 
 function ChordsPage() {
-  const [input, setInput] = useState("Cmaj7");
+  const [input, setInput] = useState("Em");
   const [chord, setChord] = useState<ResolvedChord | null>(null);
   const [voicingIdx, setVoicingIdx] = useState(0);
   const [error, setError] = useState("");
@@ -53,7 +53,7 @@ function ChordsPage() {
   }, []);
 
   useEffect(() => {
-    handleSubmit("Cmaj7");
+    handleSubmit("Em");
   }, [handleSubmit]);
 
   function saveChord() {
@@ -98,7 +98,7 @@ function ChordsPage() {
             className="flex-1 w-full px-5 py-3 rounded-full bg-card border border-border focus:border-primary outline-none transition text-lg"
           />
           <button className="w-full sm:w-auto px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:scale-105 transition">
-            Resolve
+            Search Chord
           </button>
         </form>
 
