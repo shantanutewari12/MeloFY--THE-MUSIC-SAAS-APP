@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -115,10 +115,10 @@ function Index() {
           <span className="font-display text-2xl tracking-wider">MUSICKIT</span>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#chords" className="hover:text-primary transition">Chords</a>
-          <a href="#metronome" className="hover:text-primary transition">Metronome</a>
-          <a href="#tuner" className="hover:text-primary transition">Tuner</a>
-          <a href="#practice" className="hover:text-primary transition">Practice</a>
+          <Link to="/chords" className="hover:text-primary transition">Chords</Link>
+          <Link to="/metronome" className="hover:text-primary transition">Metronome</Link>
+          <Link to="/tuner" className="hover:text-primary transition">Tuner</Link>
+          <Link to="/dashboard" className="hover:text-primary transition">Dashboard</Link>
         </nav>
         <button className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:scale-105 transition shadow-[0_0_30px_oklch(0.82_0.17_80/0.3)]">
           Sign in
@@ -148,12 +148,12 @@ function Index() {
               chromatic tuner, and practice journal. One beautiful app.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
-              <button className="group px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition flex items-center gap-2">
+              <Link to="/chords" className="group px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition inline-flex items-center gap-2">
                 ▶ Start playing
-              </button>
-              <button className="px-7 py-3 rounded-full border border-border hover:border-primary transition font-semibold">
-                See chord library
-              </button>
+              </Link>
+              <Link to="/metronome" className="px-7 py-3 rounded-full border border-border hover:border-primary transition font-semibold">
+                Open metronome
+              </Link>
             </div>
           </div>
 
