@@ -115,10 +115,10 @@ function Index() {
           <span className="font-display text-2xl tracking-wider">MUSICKIT</span>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#chords" className="hover:text-primary transition">Chords</a>
-          <a href="#metronome" className="hover:text-primary transition">Metronome</a>
-          <a href="#tuner" className="hover:text-primary transition">Tuner</a>
-          <a href="#practice" className="hover:text-primary transition">Practice</a>
+          <Link to="/chords" className="hover:text-primary transition">Chords</Link>
+          <Link to="/metronome" className="hover:text-primary transition">Metronome</Link>
+          <Link to="/tuner" className="hover:text-primary transition">Tuner</Link>
+          <Link to="/dashboard" className="hover:text-primary transition">Dashboard</Link>
         </nav>
         <button className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:scale-105 transition shadow-[0_0_30px_oklch(0.82_0.17_80/0.3)]">
           Sign in
