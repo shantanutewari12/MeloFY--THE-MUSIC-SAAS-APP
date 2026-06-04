@@ -148,12 +148,12 @@ function Index() {
               chromatic tuner, and practice journal. One beautiful app.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
-              <button className="group px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition flex items-center gap-2">
+              <Link to="/chords" className="group px-7 py-3 rounded-full bg-primary text-primary-foreground font-semibold animate-pulse-glow hover:scale-105 transition inline-flex items-center gap-2">
                 ▶ Start playing
-              </button>
-              <button className="px-7 py-3 rounded-full border border-border hover:border-primary transition font-semibold">
-                See chord library
-              </button>
+              </Link>
+              <Link to="/metronome" className="px-7 py-3 rounded-full border border-border hover:border-primary transition font-semibold">
+                Open metronome
+              </Link>
             </div>
           </div>
 
