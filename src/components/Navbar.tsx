@@ -4,24 +4,29 @@ import { playInstallSound } from "../lib/audioSynth";
 import { toast } from "sonner";
 import { Music } from "lucide-react";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 export function Navbar() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as any).standalone === true;
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsInstalled(isStandalone);
 
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall as EventListener);
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall as EventListener);
     };
   }, []);
 
@@ -37,7 +42,9 @@ export function Navbar() {
         toast.success("Thank you for installing MeloFY! 🎶");
       }
     } else {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+        !(window as Window & { MSStream?: unknown }).MSStream;
       if (isIOS) {
         toast.info(
           "To install MeloFY on iOS: tap the 'Share' icon in Safari and select 'Add to Home Screen' 📲",

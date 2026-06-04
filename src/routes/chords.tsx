@@ -156,6 +156,7 @@ function ChordsPage() {
                 </div>
                 <button
                   onClick={() => playGuitarChord(chord.guitarVoicings[voicingIdx])}
+                  data-no-click-sound
                   className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold hover:scale-105 active:scale-95 transition shadow-[0_0_20px_oklch(0.82_0.17_80/0.3)] text-sm"
                 >
                   <Volume2 className="w-4 h-4" />
@@ -170,6 +171,7 @@ function ChordsPage() {
                 </div>
                 <button
                   onClick={() => playPianoChord(chord.pianoKeys)}
+                  data-no-click-sound
                   className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-accent-foreground font-semibold hover:scale-105 active:scale-95 transition shadow-[0_0_20px_oklch(0.7_0.22_340/0.3)] text-sm"
                 >
                   <Volume2 className="w-4 h-4" />

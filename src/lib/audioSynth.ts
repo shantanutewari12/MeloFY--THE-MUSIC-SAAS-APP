@@ -66,7 +66,7 @@ export function playInstallSound() {
 }
 
 // Piano sound synthesis for a single note
-function playPianoNote(ctx: AudioContext, midi: number, startTime: number) {
+function playPianoNote(ctx: AudioContext, midi: number, startTime: number, volumeScale = 1.0) {
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
   const now = startTime;
 
@@ -107,7 +107,7 @@ function playPianoNote(ctx: AudioContext, midi: number, startTime: number) {
   gain3.connect(masterGain);
 
   masterGain.gain.setValueAtTime(0, now);
-  masterGain.gain.linearRampToValueAtTime(0.25, now + 0.015); // piano strike attack
+  masterGain.gain.linearRampToValueAtTime(0.35 * volumeScale, now + 0.015); // piano strike attack
   masterGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
 
   masterGain.connect(ctx.destination);
@@ -122,7 +122,7 @@ function playPianoNote(ctx: AudioContext, midi: number, startTime: number) {
 }
 
 // Guitar sound synthesis for a single note (plucked string)
-function playGuitarNote(ctx: AudioContext, midi: number, startTime: number) {
+function playGuitarNote(ctx: AudioContext, midi: number, startTime: number, volumeScale = 1.0) {
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
   const now = startTime;
 
@@ -150,7 +150,7 @@ function playGuitarNote(ctx: AudioContext, midi: number, startTime: number) {
   filter.frequency.exponentialRampToValueAtTime(freq * 1.3, now + 0.25);
 
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.22, now + 0.008); // pluck attack
+  gain.gain.linearRampToValueAtTime(0.32 * volumeScale, now + 0.008); // pluck attack
   gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8); // decay
 
   filter.connect(gain);
@@ -168,8 +168,9 @@ export function playPianoChord(midiNotes: number[]) {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
+    const volumeScale = 2.4 / Math.max(3, midiNotes.length);
     midiNotes.forEach((midi) => {
-      playPianoNote(ctx, midi, now);
+      playPianoNote(ctx, midi, now, volumeScale);
     });
   } catch (e) {
     console.error("Error playing piano chord:", e);
@@ -183,11 +184,14 @@ export function playGuitarChord(voicing: number[]) {
     const now = ctx.currentTime;
     const GUITAR_OPEN = [40, 45, 50, 55, 59, 64]; // E2, A2, D3, G3, B3, E4
 
+    const activeStrings = voicing.filter((f) => f !== -1).length;
+    const volumeScale = 3.2 / Math.max(3, activeStrings);
+
     let strumDelay = 0;
     voicing.forEach((fret, stringIdx) => {
       if (fret === -1) return; // skip muted strings
       const midi = GUITAR_OPEN[stringIdx] + fret;
-      playGuitarNote(ctx, midi, now + strumDelay);
+      playGuitarNote(ctx, midi, now + strumDelay, volumeScale);
       strumDelay += 0.045; // 45ms delay per string for standard strum
     });
   } catch (e) {

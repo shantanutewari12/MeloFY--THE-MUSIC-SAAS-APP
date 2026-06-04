@@ -168,26 +168,31 @@ function ChordDiagram({ name, frets }: { name: string; frets: (number | "x")[] }
   );
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 function Index() {
   const [bpm, setBpm] = useState(120);
   const [beat, setBeat] = useState(0);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as any).standalone === true;
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsInstalled(isStandalone);
 
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall as EventListener);
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall as EventListener);
     };
   }, []);
 
@@ -202,7 +207,9 @@ function Index() {
         setDeferredPrompt(null);
       }
     } else {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+        !(window as Window & { MSStream?: unknown }).MSStream;
       if (isIOS) {
         toast.info(
           "To install MeloFY on iOS: tap the 'Share' icon in Safari and select 'Add to Home Screen' 📲",

@@ -274,7 +274,7 @@ export function GuitarDiagram({ voicing, name }: Props) {
         onClick={downloadPNG}
         className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary transition"
       >
-        Download PNG
+        Download as Image
       </button>
     </div>
   );

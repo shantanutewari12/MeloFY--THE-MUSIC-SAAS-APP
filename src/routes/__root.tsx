@@ -175,8 +175,8 @@ function RootComponent() {
       const target = e.target as HTMLElement;
       const clickable = target.closest(
         "button, a, [role='button'], input[type='submit'], input[type='button']",
-      );
-      if (clickable) {
+      ) as HTMLElement;
+      if (clickable && !clickable.hasAttribute("data-no-click-sound")) {
         playClickSound();
       }
     };

@@ -147,6 +147,55 @@ function generateVoicing(chordPCs: number[], startFret: number): number[] {
   }
   return covered.size >= Math.min(needed.size, 3) ? voicing : voicing.map(() => -1);
 }
+const OPEN_CHORDS: Record<string, number[][]> = {
+  C_: [[-1, 3, 2, 0, 1, 0]],
+  G_: [[3, 2, 0, 0, 0, 3]],
+  D_: [[-1, -1, 0, 2, 3, 2]],
+  A_: [[-1, 0, 2, 2, 2, 0]],
+  E_: [[0, 2, 2, 1, 0, 0]],
+  C_m: [[-1, 3, 5, 5, 4, 3]],
+  G_m: [[3, 5, 5, 3, 3, 3]],
+  D_m: [[-1, -1, 0, 2, 3, 1]],
+  A_m: [[-1, 0, 2, 2, 1, 0]],
+  E_m: [[0, 2, 2, 0, 0, 0]],
+  B_m: [[-1, 2, 4, 4, 3, 2]],
+};
+
+function getStandardVoicings(root: string, quality: string, rootIndex: number): number[][] {
+  const q = quality.toLowerCase();
+  const isMinor = q === "m" || q === "min" || q === "minor";
+  const isMajor = q === "" || q === "maj" || q === "major";
+
+  const key = `${root}_${isMinor ? "m" : ""}`;
+  const presets = OPEN_CHORDS[key];
+  const voicings: number[][] = presets ? presets.map((v) => [...v]) : [];
+
+  if (isMajor) {
+    const fA = (rootIndex - 9 + 12) % 12;
+    if (fA >= 0 && fA <= 10) {
+      const vA = [-1, fA, fA + 2, fA + 2, fA + 2, fA];
+      if (!voicings.some((v) => v.join(",") === vA.join(","))) voicings.push(vA);
+    }
+    const fE = (rootIndex - 4 + 12) % 12;
+    if (fE >= 0 && fE <= 10) {
+      const vE = [fE, fE + 2, fE + 2, fE + 1, fE, fE];
+      if (!voicings.some((v) => v.join(",") === vE.join(","))) voicings.push(vE);
+    }
+  } else if (isMinor) {
+    const fA = (rootIndex - 9 + 12) % 12;
+    if (fA >= 0 && fA <= 10) {
+      const vA = [-1, fA, fA + 2, fA + 2, fA + 1, fA];
+      if (!voicings.some((v) => v.join(",") === vA.join(","))) voicings.push(vA);
+    }
+    const fE = (rootIndex - 4 + 12) % 12;
+    if (fE >= 0 && fE <= 10) {
+      const vE = [fE, fE + 2, fE + 2, fE, fE, fE];
+      if (!voicings.some((v) => v.join(",") === vE.join(","))) voicings.push(vE);
+    }
+  }
+
+  return voicings;
+}
 
 export interface ResolvedChord {
   name: string;
@@ -164,11 +213,13 @@ export function resolveChord(input: string): ResolvedChord | null {
   const pcs = intervals.map((i) => (parsed.rootIndex + i) % 12);
   const notes = pcs.map((pc) => noteAt(pc));
 
-  const voicings: number[][] = [];
-  for (const start of [0, 3, 5, 7, 9]) {
-    const v = generateVoicing(pcs, start);
-    if (v.some((f) => f >= 0)) voicings.push(v);
-    if (voicings.length >= 3) break;
+  const voicings = getStandardVoicings(parsed.root, parsed.quality, parsed.rootIndex);
+  if (voicings.length === 0) {
+    for (const start of [0, 3, 5, 7, 9]) {
+      const v = generateVoicing(pcs, start);
+      if (v.some((f) => f >= 0)) voicings.push(v);
+      if (voicings.length >= 3) break;
+    }
   }
   if (voicings.length === 0) voicings.push([-1, -1, -1, -1, -1, -1]);
 
@@ -178,13 +229,17 @@ export function resolveChord(input: string): ResolvedChord | null {
     if (pcs.includes(k % 12)) pianoKeys.push(k);
   }
 
+  const displayQuality =
+    parsed.quality === "min" || parsed.quality === "minor" ? "m" : parsed.quality;
+  const displayName = parsed.root + displayQuality;
+
   const qualityLabel = QUALITY_LABEL[parsed.quality] ?? parsed.quality.toUpperCase();
   return {
-    name: parsed.root + parsed.quality,
+    name: displayName,
     root: parsed.root,
     qualityLabel,
     notes,
-    guitarVoicings: voicings,
+    guitarVoicings: voicings.slice(0, 3),
     pianoKeys,
   };
 }
