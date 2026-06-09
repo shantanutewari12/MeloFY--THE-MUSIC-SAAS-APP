@@ -5,7 +5,7 @@ interface Props {
   name: string;
 }
 
-export function getGuitarFingering(voicing: number[]): (number | null)[] {
+function getGuitarFingering(voicing: number[]): (number | null)[] {
   const voicingStr = voicing.join(",");
   const presetFingerings: Record<string, (number | null)[]> = {
     "-1,3,2,0,1,0": [null, 3, 2, null, 1, null], // C

@@ -2,7 +2,10 @@ let sharedAudioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
   if (!sharedAudioCtx) {
-    sharedAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    sharedAudioCtx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
   }
   if (sharedAudioCtx.state === "suspended") {
     sharedAudioCtx.resume();
@@ -162,6 +165,43 @@ function playGuitarNote(ctx: AudioContext, midi: number, startTime: number, volu
   osc1.stop(now + 1.8);
   osc2.stop(now + 1.8);
 }
+
+// Play a single guitar note synth tone
+export function playSingleGuitarNote(midi: number, volumeScale = 1.0) {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    playGuitarNote(ctx, midi, now, volumeScale);
+  } catch (e) {
+    console.error("Error playing single guitar note:", e);
+  }
+}
+
+// Play a high, pleasant chime sound when string is in tune
+export function playInTuneChime() {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, now); // A5 chime
+    
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.05, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.3);
+  } catch (e) {
+    console.error("Error playing in-tune chime:", e);
+  }
+}
+
 
 // Play Piano Chord polyphonically (all notes together)
 export function playPianoChord(midiNotes: number[]) {
