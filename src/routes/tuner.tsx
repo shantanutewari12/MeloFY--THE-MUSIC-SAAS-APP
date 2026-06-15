@@ -107,9 +107,54 @@ function TunerPage() {
   const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const workerRef = useRef<Worker | null>(null);
   const rafRef = useRef<number | null>(null);
   const hasChimedRef = useRef(false);
+
+  // Inline YIN pitch detection — avoids Web Worker SSR bundling issues
+  function detectPitch(buffer: Float32Array, sampleRate: number, threshold = 0.15): number {
+    const bufferSize = buffer.length;
+    const halfSize = Math.floor(bufferSize / 2);
+    const yinBuffer = new Float32Array(halfSize);
+
+    // Difference function
+    for (let tau = 0; tau < halfSize; tau++) {
+      let sum = 0;
+      for (let i = 0; i < halfSize; i++) {
+        const delta = buffer[i] - buffer[i + tau];
+        sum += delta * delta;
+      }
+      yinBuffer[tau] = sum;
+    }
+
+    // Cumulative mean normalized difference
+    yinBuffer[0] = 1;
+    let runningSum = 0;
+    for (let tau = 1; tau < halfSize; tau++) {
+      runningSum += yinBuffer[tau];
+      yinBuffer[tau] = (yinBuffer[tau] * tau) / runningSum;
+    }
+
+    // Absolute threshold — find first dip below threshold
+    let tau = -1;
+    for (let t = 2; t < halfSize; t++) {
+      if (yinBuffer[t] < threshold) {
+        while (t + 1 < halfSize && yinBuffer[t + 1] < yinBuffer[t]) t++;
+        tau = t;
+        break;
+      }
+    }
+    if (tau === -1) return -1;
+
+    // Parabolic interpolation for sub-sample accuracy
+    const x0 = tau > 0 ? tau - 1 : tau;
+    const x2 = tau < halfSize - 1 ? tau + 1 : tau;
+    let betterTau = tau;
+    if (x0 !== tau && x2 !== tau) {
+      const s0 = yinBuffer[x0], s1 = yinBuffer[tau], s2 = yinBuffer[x2];
+      betterTau = tau + (s2 - s0) / (2 * (2 * s1 - s2 - s0));
+    }
+    return sampleRate / betterTau;
+  }
 
   // Keep state refs up to date for the worker message event handler
   const autoModeRef = useRef(autoMode);
@@ -151,15 +196,10 @@ function TunerPage() {
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      const worker = new Worker(new URL("../lib/yin.worker.ts", import.meta.url), {
-        type: "module",
-      });
-      workerRef.current = worker;
-      let pending = false;
+      const buf = new Float32Array(analyser.fftSize);
+      let silenceFrames = 0;
 
-      worker.onmessage = (e: MessageEvent<{ freq: number }>) => {
-        pending = false;
-        const f = e.data.freq;
+      const processResult = (f: number) => {
         if (f > 35 && f < 1500) {
           const detectedMidi = freqToMidi(f);
           const preset = currentPresetRef.current;
@@ -176,12 +216,10 @@ function TunerPage() {
               }
             });
 
-            // Snapped target string
             const targetStr = preset.strings[closestIdx];
             const targetF = midiToFreq(targetStr.midi);
             const c = Math.round(1200 * Math.log2(f / targetF));
 
-            // Only update active index if the pitch is reasonably close (within 2.5 semitones)
             if (Math.abs(detectedMidi - targetStr.midi) < 2.5) {
               setActiveStringIndex(closestIdx);
               setFreq(f);
@@ -206,7 +244,6 @@ function TunerPage() {
             const targetF = midiToFreq(targetStr.midi);
             const c = Math.round(1200 * Math.log2(f / targetF));
 
-            // Only show reading if detected pitch is close to manual peg
             if (Math.abs(detectedMidi - targetStr.midi) < 2.5) {
               setFreq(f);
               setNoteName(targetStr.name);
@@ -224,7 +261,6 @@ function TunerPage() {
                 hasChimedRef.current = false;
               }
             } else {
-              // Out of range for selected manual string
               setFreq(0);
               setCents(0);
               setIsPerfect(false);
@@ -234,29 +270,23 @@ function TunerPage() {
         }
       };
 
-      const buf = new Float32Array(analyser.fftSize);
-      let silenceFrames = 0;
-
       const tick = () => {
         if (!analyserRef.current) return;
         analyserRef.current.getFloatTimeDomainData(buf);
 
+        // Compute RMS to gate silence
         let rms = 0;
         for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
         rms = Math.sqrt(rms / buf.length);
 
-        if (rms > 0.012) {
+        if (rms > 0.005) {
           silenceFrames = 0;
-          if (!pending && workerRef.current) {
-            pending = true;
-            workerRef.current.postMessage({
-              buffer: buf.slice(0),
-              sampleRate: ctxRef.current!.sampleRate,
-            });
-          }
+          // Run YIN inline — fast enough (<1ms) on a 2048-sample buffer
+          const f = detectPitch(buf, ctxRef.current!.sampleRate);
+          if (f > 0) processResult(f);
         } else {
           silenceFrames++;
-          if (silenceFrames > 35) { // Return needle to center and fade out detected pitch
+          if (silenceFrames > 35) {
             setFreq(0);
             setCents(0);
             setIsPerfect(false);
@@ -275,10 +305,8 @@ function TunerPage() {
   function stop() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    workerRef.current?.terminate();
     ctxRef.current?.close();
     streamRef.current = null;
-    workerRef.current = null;
     ctxRef.current = null;
     analyserRef.current = null;
     setListening(false);
